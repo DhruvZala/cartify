@@ -17,7 +17,7 @@ const AppRoutes: React.FC = () => {
 
   const routes = [
     { path: "/login", element: <Login /> },
-    { path: "/", element: <Login /> },
+    { path: "/", element: <ProductPage /> },
     { path: "/productPage", element: <ProductPage /> },
     { path: "/cart", element: <Cart /> },
     { path: "/product/:id", element: <ProductDetailPage /> },

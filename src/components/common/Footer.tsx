@@ -96,7 +96,7 @@ function Footer() {
               <span>2035 by Cartify</span>
             </div>
             <div className="hidden md:block">•</div>
-            <div>Powered and secured by Wix</div>
+            <div>Made By Dhruv Zala</div>
           </div>
         </div>
       </div>
