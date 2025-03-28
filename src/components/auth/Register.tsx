@@ -49,6 +49,7 @@ const Register: React.FC = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [registrationError, setRegistrationError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const formik = useFormik({
@@ -59,7 +60,10 @@ const Register: React.FC = () => {
       confirmPassword: "",
     },
     validationSchema,
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
+      setIsSubmitting(true);
+      setRegistrationError("");
+
       try {
         const existingUsers: User[] = JSON.parse(
           localStorage.getItem("userDetails") || "[]"
@@ -77,6 +81,7 @@ const Register: React.FC = () => {
           setRegistrationError(
             "Email already registered. Please login to continue."
           );
+          setIsSubmitting(false);
           return;
         }
 
@@ -84,19 +89,25 @@ const Register: React.FC = () => {
           setRegistrationError(
             `Maximum ${MAX_USERS} users reached. Please try later.`
           );
+          setIsSubmitting(false);
           return;
         }
 
         const newUser = {
-          name: values.name,
-          email: values.email,
+          name: values.name.trim(),
+          email: values.email.trim(),
           password: values.password,
         };
 
         const updatedUsers = [...existingUsers, newUser];
         localStorage.setItem("userDetails", JSON.stringify(updatedUsers));
 
-        localStorage.setItem("email", values.email);
+        // Store user details in localStorage
+        localStorage.setItem("email", newUser.email);
+        localStorage.setItem("name", newUser.name);
+
+        // API Call Delay
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         navigate("/ProductPage");
       } catch (error) {
@@ -104,6 +115,8 @@ const Register: React.FC = () => {
         setRegistrationError(
           "An error occurred during registration. Please try again."
         );
+      } finally {
+        setIsSubmitting(false);
       }
     },
   });
@@ -148,6 +161,7 @@ const Register: React.FC = () => {
                     : "border-gray-300"
                 }`}
                 placeholder="John Doe"
+                disabled={isSubmitting}
               />
               {formik.touched.name && formik.errors.name && (
                 <p className="mt-1 text-sm text-red-600 animate-fade-in">
@@ -177,6 +191,7 @@ const Register: React.FC = () => {
                     : "border-gray-300"
                 }`}
                 placeholder="your@email.com"
+                disabled={isSubmitting}
               />
               {formik.touched.email && formik.errors.email && (
                 <p className="mt-1 text-sm text-red-600 animate-fade-in">
@@ -207,11 +222,13 @@ const Register: React.FC = () => {
                       : "border-gray-300"
                   }`}
                   placeholder="••••••••"
+                  disabled={isSubmitting}
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-indigo-600 transition-colors duration-200"
                   onClick={() => setPasswordVisible(!passwordVisible)}
+                  disabled={isSubmitting}
                 >
                   {passwordVisible ? (
                     <EyeOff className="w-5 h-5" />
@@ -250,6 +267,7 @@ const Register: React.FC = () => {
                       : "border-gray-300"
                   }`}
                   placeholder="••••••••"
+                  disabled={isSubmitting}
                 />
                 <button
                   type="button"
@@ -257,6 +275,7 @@ const Register: React.FC = () => {
                   onClick={() =>
                     setConfirmPasswordVisible(!confirmPasswordVisible)
                   }
+                  disabled={isSubmitting}
                 >
                   {confirmPasswordVisible ? (
                     <EyeOff className="w-5 h-5" />
@@ -275,9 +294,40 @@ const Register: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full px-4 py-3 text-lg font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 shadow-md hover:shadow-lg"
+              disabled={isSubmitting}
+              className={`w-full px-4 py-3 text-lg font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 shadow-md hover:shadow-lg ${
+                isSubmitting
+                  ? "bg-indigo-400 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-700"
+              }`}
             >
-              Create Account
+              {isSubmitting ? (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Creating Account...
+                </span>
+              ) : (
+                "Create Account"
+              )}
             </button>
           </div>
 
